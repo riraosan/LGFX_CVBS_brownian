@@ -7,14 +7,21 @@
 
 // modified for ATOM Lite by riraosan_0901
 
+#include <Arduino.h>
+#include <WiFi.h>
+#include <time.h>
+
 #include <M5GFX.h>
 #include <LGFX_8BIT_CVBS.h>
 
-#include "sfc_f49.h"
-#include "sfc_f38.h"
+// 時刻
+uint8_t secLastReport = 0;
 
+//表示
 LGFX_8BIT_CVBS display;
 
+#include "sfc_f49.h"
+#include "sfc_f38.h"
 #define TRANSPARENT 0xd6fc
 
 extern const unsigned short info[];
@@ -26,12 +33,10 @@ extern const unsigned short oxygen[];
 extern const unsigned short dioxide[];
 extern const unsigned short nitrogen[];
 
-static constexpr unsigned short infoWidth  = 32;
-static constexpr unsigned short infoHeight = 32;
-
+static constexpr unsigned short infoWidth   = 32;
+static constexpr unsigned short infoHeight  = 32;
 static constexpr unsigned short alertWidth  = 32;
 static constexpr unsigned short alertHeight = 32;
-
 static constexpr unsigned short closeWidth  = 32;
 static constexpr unsigned short closeHeight = 32;
 
@@ -80,7 +85,7 @@ struct obj_info_t {
   }
 };
 
-static constexpr size_t obj_count = 50;
+static constexpr size_t obj_count = 30;
 static obj_info_t       objects[obj_count];
 
 static LGFX_Sprite  sprites[2];
@@ -107,18 +112,24 @@ void drawTime(int h, int m, int s) {
   // hour(24h)
   timeSprite.pushImage(34 * 0, 0, 34, 49, (uint16_t *)f49[hA], TRANSPARENT);
   timeSprite.pushImage(34 * 1, 0, 34, 49, (uint16_t *)f49[hR], TRANSPARENT);
-
-  timeSprite.pushImage(34 * 2, 0, 34, 49, (uint16_t *)f49[11], TRANSPARENT);  // space
-
   // minuits
-  timeSprite.pushImage(34 * 3, 0, 34, 49, (uint16_t *)f49[mA], TRANSPARENT);
-  timeSprite.pushImage(34 * 4, 0, 34, 49, (uint16_t *)f49[mR], TRANSPARENT);
-
-  timeSprite.pushImage(34 * 5, 0, 34, 49, (uint16_t *)f49[11], TRANSPARENT);  // space
-
+  timeSprite.pushImage(34 * 2 + 10, 0, 34, 49, (uint16_t *)f49[mA], TRANSPARENT);
+  timeSprite.pushImage(34 * 3 + 10, 0, 34, 49, (uint16_t *)f49[mR], TRANSPARENT);
   // seconds
-  timeSprite.pushImage(34 * 6, 0, 34, 49, (uint16_t *)f49[sA], TRANSPARENT);
-  timeSprite.pushImage(34 * 7, 0, 34, 49, (uint16_t *)f49[sR], TRANSPARENT);
+  timeSprite.pushImage(34 * 4 + 10 * 2, 0, 34, 49, (uint16_t *)f49[sA], TRANSPARENT);
+  timeSprite.pushImage(34 * 5 + 10 * 2, 0, 34, 49, (uint16_t *)f49[sR], TRANSPARENT);
+}
+
+// Connect to wifi
+void setupWiFi(void) {
+  WiFi.begin("your ssid", "your pass");
+
+  // Wait some time to connect to wifi
+  for (int i = 0; i < 30 && WiFi.status() != WL_CONNECTED; i++) {
+    delay(1000);
+  }
+
+  configTzTime(PSTR("JST-9"), "ntp.nict.jp");
 }
 
 void setup(void) {
@@ -175,11 +186,19 @@ void setup(void) {
   icons[1].pushImage(0, 0, alertWidth, alertHeight, nitrogen);
   icons[2].pushImage(0, 0, closeWidth, closeHeight, oxygen);
 
-  timeSprite.createSprite(280, 49);
-  timeSprite.setSwapBytes(false);
-  timeSprite.fillSprite(TRANSPARENT);
-  drawTime(0, 0, 0);
   display.startWrite();
+
+  setupWiFi();
+
+  struct tm timeinfo;
+  getLocalTime(&timeinfo);
+  secLastReport = timeinfo.tm_sec;
+
+  if (timeSprite.createSprite(224, 49)) {
+    timeSprite.setSwapBytes(false);
+  } else {
+    log_e("can't allocate");
+  }
 }
 
 void loop(void) {
@@ -201,8 +220,15 @@ void loop(void) {
     display.display();
 
     if (y == 0) {
+      struct tm timeinfo;
+      getLocalTime(&timeinfo);
 
-      timeSprite.pushSprite(&sprites[flip], 40, 37, TRANSPARENT);
+      drawTime(timeinfo.tm_hour, timeinfo.tm_min, timeinfo.tm_sec);
+      timeSprite.pushSprite(&sprites[flip], 68, 37, TRANSPARENT);
+
+      if ((timeinfo.tm_hour == 12) && (timeinfo.tm_min == 0) && (timeinfo.tm_sec == 0)) {
+        ESP.restart();
+      }
     }
 
     sprites[flip].pushSprite(&display, 0, y);
