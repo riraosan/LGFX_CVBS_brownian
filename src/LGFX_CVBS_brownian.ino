@@ -17,7 +17,7 @@
 // 時刻
 uint8_t secLastReport = 0;
 
-//表示
+// 表示
 LGFX_8BIT_CVBS display;
 
 #include "sfc_f49.h"

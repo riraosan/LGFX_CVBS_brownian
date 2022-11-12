@@ -1,8 +1,9 @@
 # Brownian Sample for ATOM Lite 
 
-I used the Panel_CVBS library included in the M5GFX library created by @lovyan03 to display @zeromem's results on a digital TV.
+I used the Panel_CVBS library included in the M5GFX library created by @lovyan03 to display @zeromem0's results on a digital TV.
 
-//TODO image here.
+- Sample Image
+  https://twitter.com/i/status/1591236500859256832
 
 based on MovingIcons from M5GFX by https://twitter.com/lovyan03
 
@@ -26,4 +27,6 @@ Thanks for your contribution.
 
 ## TODO 
 
-To add NTP Clock on Brownian.
+- [x] To add NTP Clock on Brownian.
+- [ ] To slow down the display of Brownian motion.
+- [ ] To display any animation during WiFi connection.
