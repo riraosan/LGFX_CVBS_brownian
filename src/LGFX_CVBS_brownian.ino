@@ -122,7 +122,7 @@ void drawTime(int h, int m, int s) {
 
 // Connect to wifi
 void setupWiFi(void) {
-  WiFi.begin("your ssid", "your pass");
+  WiFi.begin("俺のiPhone", "room03601");
 
   // Wait some time to connect to wifi
   for (int i = 0; i < 30 && WiFi.status() != WL_CONNECTED; i++) {
@@ -148,9 +148,9 @@ void setup(void) {
     a->img = i % 3;
     a->x   = rand() % lcd_width;
     a->y   = rand() % lcd_height;
-    a->dx  = ((rand() & 3) + 1) * (i & 1 ? 1 : -1);
-    a->dy  = ((rand() & 3) + 1) * (i & 2 ? 1 : -1);
-    a->dr  = ((rand() & 3) + 1) * (i & 2 ? 1 : -1);
+    a->dx  = ((rand() & 1) + 1) * (i & 1 ? 1 : -1);
+    a->dy  = ((rand() & 1) + 1) * (i & 2 ? 1 : -1);
+    a->dr  = ((rand() & 1) + 1) * (i & 2 ? 1 : -1);
     a->r   = 0;
     a->z   = (float)((rand() % 10) + 10) / 10;
     a->dz  = (float)((rand() % 10) + 1) / 100;
