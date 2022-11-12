@@ -28,5 +28,5 @@ Thanks for your contribution.
 ## TODO 
 
 - [x] To add NTP Clock on Brownian.
-- [ ] To slow down the display of Brownian motion.
-- [ ] To display any animation during WiFi connection.
+- [x] To slow down the display of Brownian motion.
+- [x] To display any animation during WiFi connection.

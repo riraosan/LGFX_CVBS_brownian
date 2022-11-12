@@ -122,11 +122,25 @@ void drawTime(int h, int m, int s) {
 
 // Connect to wifi
 void setupWiFi(void) {
-  WiFi.begin("俺のiPhone", "room03601");
+  WiFi.begin("ssid", "password");
 
   // Wait some time to connect to wifi
   for (int i = 0; i < 30 && WiFi.status() != WL_CONNECTED; i++) {
-    delay(1000);
+    display.setCursor(display.width() >> 1, display.height() >> 1);
+    display.print("|");
+    delay(500);
+
+    display.setCursor(display.width() >> 1, display.height() >> 1);
+    display.print("/");
+    delay(500);
+
+    display.setCursor(display.width() >> 1, display.height() >> 1);
+    display.print("-");
+    delay(500);
+
+    display.setCursor(display.width() >> 1, display.height() >> 1);
+    display.print("\\");
+    delay(500);
   }
 
   configTzTime(PSTR("JST-9"), "ntp.nict.jp");
