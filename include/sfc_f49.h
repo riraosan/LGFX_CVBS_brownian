@@ -1,4 +1,5 @@
 #include <stdint.h>
+#include <Arduino.h>
 
 static const uint8_t sfc_34x49_f49_0[3332] = {
     // ██████████████████████████████████
