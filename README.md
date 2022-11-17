@@ -1,4 +1,5 @@
-# Brownian Sample for ATOM Lite 
+
+# Brownian Sample for ATOM Lite
 
 I used the Panel_CVBS library included in the M5GFX library created by @lovyan03 to display @zeromem0's results on a digital TV.
 
@@ -7,9 +8,9 @@ I used the Panel_CVBS library included in the M5GFX library created by @lovyan03
 
 based on MovingIcons from M5GFX by https://twitter.com/lovyan03
 
-https://github.com/lovyan03/LovyanGFX/blob/master/examples/Sprite/MovingIcons/MovingIcons.ino 
+https://github.com/lovyan03/LovyanGFX/blob/master/examples/Sprite/MovingIcons/MovingIcons.ino
 
-@zeromem said...
+@zeromem0 said...
 > icons replaced with air molecules (oxygen, nitrogen, carbon dioxide) for entertainment purposes only, not scientific accurate
 
 ## Modifier
@@ -23,10 +24,11 @@ MIT
 ## Acknowledgments
 
 Thanks for your contribution.
-@zeromem : author of [brownianSCD41](https://github.com/zeromem0/brownianSCD41.git)
+@zeromem0 : author of [brownianSCD41](https://github.com/zeromem0/brownianSCD41.git)
 
-## TODO 
+## TODO
 
 - [x] To add NTP Clock on Brownian.
 - [x] To slow down the display of Brownian motion.
 - [x] To display any animation during WiFi connection.
+- [x] To replace fonts.
