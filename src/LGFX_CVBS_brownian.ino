@@ -73,11 +73,12 @@ struct obj_info_t {
 static constexpr size_t obj_count = 30;
 static obj_info_t       objects[obj_count];
 
-static LGFX_Sprite  sprites[2];
-static LGFX_Sprite  icons[3];
+static M5Canvas     sprites[2];
+static M5Canvas     icons[3];
 static int_fast16_t sprite_height;
+static int_fast16_t time_height;
 
-static LGFX_Sprite timeSprite;
+static M5Canvas timeSprite[2];
 
 const unsigned short *f65[] = {
     sfc_43x65_f65_0,
@@ -93,7 +94,7 @@ const unsigned short *f65[] = {
     sfc_19x65_f65_colon,
     sfc_19x65_f65_dot};
 
-void drawTime(int h, int m, int s) {
+void drawTime(int div, int h, int m, int s) {
   int hA = h / 10;
   int hR = h % 10;
   int mA = m / 10;
@@ -101,21 +102,21 @@ void drawTime(int h, int m, int s) {
   int sA = s / 10;
   int sR = s % 10;
 
-  timeSprite.fillSprite(TRANSPARENT);
+  timeSprite[div].fillSprite(TRANSPARENT);
 
   int fontWidth = 43;
 
   // hour(24h)
-  timeSprite.pushImage(fontWidth * 0, 0, fontWidth, 65, (uint16_t *)f65[hA], TRANSPARENT);
-  timeSprite.pushImage(fontWidth * 1, 0, fontWidth, 65, (uint16_t *)f65[hR], TRANSPARENT);
-  timeSprite.pushImage(fontWidth * 2 + 12, 0, 19, 65, (uint16_t *)f65[10], TRANSPARENT);
+  timeSprite[div].pushImage(fontWidth * 0, 0, fontWidth, 65, (uint16_t *)f65[hA], TRANSPARENT);
+  timeSprite[div].pushImage(fontWidth * 1, 0, fontWidth, 65, (uint16_t *)f65[hR], TRANSPARENT);
+  timeSprite[div].pushImage(fontWidth * 2 + 12, 0, 19, 65, (uint16_t *)f65[10], TRANSPARENT);
   // minuits
-  timeSprite.pushImage(fontWidth * 3, 0, fontWidth, 65, (uint16_t *)f65[mA], TRANSPARENT);
-  timeSprite.pushImage(fontWidth * 4, 0, fontWidth, 65, (uint16_t *)f65[mR], TRANSPARENT);
-  timeSprite.pushImage(fontWidth * 5 + 12, 0, 19, 65, (uint16_t *)f65[10], TRANSPARENT);
+  timeSprite[div].pushImage(fontWidth * 3, 0, fontWidth, 65, (uint16_t *)f65[mA], TRANSPARENT);
+  timeSprite[div].pushImage(fontWidth * 4, 0, fontWidth, 65, (uint16_t *)f65[mR], TRANSPARENT);
+  timeSprite[div].pushImage(fontWidth * 5 + 12, 0, 19, 65, (uint16_t *)f65[10], TRANSPARENT);
   // seconds
-  timeSprite.pushImage(fontWidth * 6, 0, fontWidth, 65, (uint16_t *)f65[sA], TRANSPARENT);
-  timeSprite.pushImage(fontWidth * 7, 0, fontWidth, 65, (uint16_t *)f65[sR], TRANSPARENT);
+  timeSprite[div].pushImage(fontWidth * 6, 0, fontWidth, 65, (uint16_t *)f65[sA], TRANSPARENT);
+  timeSprite[div].pushImage(fontWidth * 7, 0, fontWidth, 65, (uint16_t *)f65[sR], TRANSPARENT);
 }
 
 // Connect to wifi
@@ -142,6 +143,8 @@ void setupWiFi(void) {
   }
 
   configTzTime(PSTR("JST-9"), "ntp.nict.jp");
+
+  WiFi.disconnect(true);
 }
 
 void setup(void) {
@@ -153,6 +156,8 @@ void setup(void) {
 
   lcd_width  = display.width();
   lcd_height = display.height();
+
+  setupWiFi();
 
   obj_info_t *a;
   for (size_t i = 0; i < obj_count; ++i) {
@@ -167,6 +172,19 @@ void setup(void) {
     a->z   = (float)((rand() % 10) + 10) / 10;
     a->dz  = (float)((rand() % 10) + 1) / 100;
   }
+
+  icons[0].createSprite(infoWidth, infoHeight);
+  icons[1].createSprite(alertWidth, alertHeight);
+  icons[2].createSprite(closeWidth, closeHeight);
+
+  icons[0].setSwapBytes(true);
+  icons[1].setSwapBytes(true);
+  icons[2].setSwapBytes(true);
+
+  // replace with molecules
+  icons[0].pushImage(0, 0, infoWidth, infoHeight, dioxide);
+  icons[1].pushImage(0, 0, alertWidth, alertHeight, nitrogen);
+  icons[2].pushImage(0, 0, closeWidth, closeHeight, oxygen);
 
   uint32_t div = 2;
   for (;;) {
@@ -185,32 +203,29 @@ void setup(void) {
     ++div;
   }
 
-  icons[0].createSprite(infoWidth, infoHeight);
-  icons[1].createSprite(alertWidth, alertHeight);
-  icons[2].createSprite(closeWidth, closeHeight);
-
-  icons[0].setSwapBytes(true);
-  icons[1].setSwapBytes(true);
-  icons[2].setSwapBytes(true);
-
-  // replace with molecules
-  icons[0].pushImage(0, 0, infoWidth, infoHeight, dioxide);
-  icons[1].pushImage(0, 0, alertWidth, alertHeight, nitrogen);
-  icons[2].pushImage(0, 0, closeWidth, closeHeight, oxygen);
+  div = 2;
+  for (;;) {
+    time_height = (65 + div - 1) / div;
+    bool fail   = false;
+    for (std::uint32_t i = 0; !fail && i < div; ++i) {
+      timeSprite[i].setColorDepth(display.getColorDepth());
+      timeSprite[i].setSwapBytes(true);
+      fail = !timeSprite[i].createSprite(344, time_height);
+    }
+    if (!fail) break;
+    log_e("can't allocate");
+    for (std::uint32_t i = 0; i < div; ++i) {
+      timeSprite[i].deleteSprite();
+    }
+    ++div;
+  }
 
   display.startWrite();
-
-  setupWiFi();
-
-  if (timeSprite.createSprite(344, 65)) {
-    timeSprite.setSwapBytes(true);
-  } else {
-    log_e("can't allocate");
-  }
 }
 
 void loop(void) {
-  static uint8_t flip = 0;
+  static uint8_t flip      = 0;
+  static uint8_t time_flip = 0;
 
   obj_info_t *a;
   for (int i = 0; i != obj_count; i++) {
@@ -231,8 +246,12 @@ void loop(void) {
       struct tm timeinfo;
       getLocalTime(&timeinfo);
 
-      drawTime(timeinfo.tm_hour, timeinfo.tm_min, timeinfo.tm_sec);
-      timeSprite.pushSprite(&sprites[flip], 8, 37, TRANSPARENT);
+      for (int_fast16_t z = 0; z < 65; z += time_height) {
+        time_flip = time_flip ? 0 : 1;
+        timeSprite[time_flip].clear();
+        drawTime(time_flip, timeinfo.tm_hour, timeinfo.tm_min, timeinfo.tm_sec);
+        timeSprite[time_flip].pushSprite(&sprites[flip], 8, z, TRANSPARENT);
+      }
 
       if ((timeinfo.tm_hour == 12) && (timeinfo.tm_min == 0) && (timeinfo.tm_sec == 0)) {
         ESP.restart();
