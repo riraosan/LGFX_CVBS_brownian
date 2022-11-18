@@ -157,8 +157,6 @@ void setupWiFi(void) {
   }
 
   configTzTime(PSTR("JST-9"), "ntp.nict.jp");
-
-  // WiFi.disconnect(true);
 }
 
 void setup(void) {
