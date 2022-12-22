@@ -14,6 +14,7 @@
 #include <LGFX_8BIT_CVBS.h>
 #include "sfc_f65.h"
 #include "molImage.h"
+#include "snowImage.h"
 
 #define TRANSPARENT 0x0000
 
@@ -110,11 +111,11 @@ void drawTime(int div, int h, int m, int s) {
     // hour(24h)
     timeSprite[div].pushImage(fontWidth * 0, -33, fontWidth, 65, (uint16_t *)f65[hA], TRANSPARENT);
     timeSprite[div].pushImage(fontWidth * 1, -33, fontWidth, 65, (uint16_t *)f65[hR], TRANSPARENT);
-    timeSprite[div].pushImage(fontWidth * 2 + 12, -33, 19, 65, (uint16_t *)f65[10], TRANSPARENT);
+    timeSprite[div].pushImage(fontWidth * 2 + 6, -33, 19, 65, (uint16_t *)f65[10], TRANSPARENT);
     // minuits
     timeSprite[div].pushImage(fontWidth * 3, -33, fontWidth, 65, (uint16_t *)f65[mA], TRANSPARENT);
     timeSprite[div].pushImage(fontWidth * 4, -33, fontWidth, 65, (uint16_t *)f65[mR], TRANSPARENT);
-    timeSprite[div].pushImage(fontWidth * 5 + 12, -33, 19, 65, (uint16_t *)f65[10], TRANSPARENT);
+    timeSprite[div].pushImage(fontWidth * 5 + 6, -33, 19, 65, (uint16_t *)f65[10], TRANSPARENT);
     // seconds
     timeSprite[div].pushImage(fontWidth * 6, -33, fontWidth, 65, (uint16_t *)f65[sA], TRANSPARENT);
     timeSprite[div].pushImage(fontWidth * 7, -33, fontWidth, 65, (uint16_t *)f65[sR], TRANSPARENT);
@@ -122,11 +123,11 @@ void drawTime(int div, int h, int m, int s) {
     // hour(24h)
     timeSprite[div].pushImage(fontWidth * 0, 0, fontWidth, 65, (uint16_t *)f65[hA], TRANSPARENT);
     timeSprite[div].pushImage(fontWidth * 1, 0, fontWidth, 65, (uint16_t *)f65[hR], TRANSPARENT);
-    timeSprite[div].pushImage(fontWidth * 2 + 12, 0, 19, 65, (uint16_t *)f65[10], TRANSPARENT);
+    timeSprite[div].pushImage(fontWidth * 2 + 6, 0, 19, 65, (uint16_t *)f65[10], TRANSPARENT);
     // minuits
     timeSprite[div].pushImage(fontWidth * 3, 0, fontWidth, 65, (uint16_t *)f65[mA], TRANSPARENT);
     timeSprite[div].pushImage(fontWidth * 4, 0, fontWidth, 65, (uint16_t *)f65[mR], TRANSPARENT);
-    timeSprite[div].pushImage(fontWidth * 5 + 12, 0, 19, 65, (uint16_t *)f65[10], TRANSPARENT);
+    timeSprite[div].pushImage(fontWidth * 5 + 6, 0, 19, 65, (uint16_t *)f65[10], TRANSPARENT);
     // seconds
     timeSprite[div].pushImage(fontWidth * 6, 0, fontWidth, 65, (uint16_t *)f65[sA], TRANSPARENT);
     timeSprite[div].pushImage(fontWidth * 7, 0, fontWidth, 65, (uint16_t *)f65[sR], TRANSPARENT);
@@ -135,7 +136,7 @@ void drawTime(int div, int h, int m, int s) {
 
 // Connect to wifi
 void setupWiFi(void) {
-  WiFi.begin("俺のiPhone", "room03601");
+  WiFi.begin("ST-790-1-HEMS24", "0123456789");
 
   // Wait some time to connect to wifi
   for (int i = 0; i < 30 && WiFi.status() != WL_CONNECTED; i++) {
@@ -194,9 +195,9 @@ void setup(void) {
   icons[2].setSwapBytes(true);
 
   // replace with molecules
-  icons[0].pushImage(0, 0, infoWidth, infoHeight, dioxide);
-  icons[1].pushImage(0, 0, alertWidth, alertHeight, nitrogen);
-  icons[2].pushImage(0, 0, closeWidth, closeHeight, oxygen);
+  icons[0].pushImage(0, 0, infoWidth, infoHeight, fulg1);
+  icons[1].pushImage(0, 0, alertWidth, alertHeight, fulg2);
+  icons[2].pushImage(0, 0, closeWidth, closeHeight, fulg3);
 
   uint32_t div = 2;
   for (;;) {
