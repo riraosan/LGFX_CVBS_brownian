@@ -135,7 +135,7 @@ void drawTime(int div, int h, int m, int s) {
 
 // Connect to wifi
 void setupWiFi(void) {
-  WiFi.begin("俺のiPhone", "room03601");
+  WiFi.begin("youre_ssid", "youre_password");
 
   // Wait some time to connect to wifi
   for (int i = 0; i < 30 && WiFi.status() != WL_CONNECTED; i++) {
