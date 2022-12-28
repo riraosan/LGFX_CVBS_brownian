@@ -136,7 +136,7 @@ void drawTime(int div, int h, int m, int s) {
 
 // Connect to wifi
 void setupWiFi(void) {
-  WiFi.begin("ST-790-1-HEMS24", "0123456789");
+  WiFi.begin("youre_ssid", "youre_password");
 
   // Wait some time to connect to wifi
   for (int i = 0; i < 30 && WiFi.status() != WL_CONNECTED; i++) {
