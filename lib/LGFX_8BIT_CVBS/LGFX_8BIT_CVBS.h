@@ -16,11 +16,11 @@ public:
       cfg.memory_height = 240;  // 出力解像度 高さ
 
       // 実際に利用する解像度を設定;
-      cfg.panel_width  = 360;       // 実際に使用する幅   (memory_width と同値か小さい値を設定する)
+      cfg.panel_width  = 360 - 8;   // 実際に使用する幅   (memory_width と同値か小さい値を設定する)
       cfg.panel_height = 240 - 16;  // 実際に使用する高さ (memory_heightと同値か小さい値を設定する)
 
       // 表示位置オフセット量を設定;
-      cfg.offset_x = 0;  // 表示位置を右にずらす量 (初期値 0)
+      cfg.offset_x = 4;  // 表示位置を右にずらす量 (初期値 0)
       cfg.offset_y = 8;  // 表示位置を下にずらす量 (初期値 0)
 
       _panel_instance.config(cfg);
@@ -42,8 +42,7 @@ public:
       // cfg.signal_type = cfg.signal_type_t::PAL_N;
 
       // 出力先のGPIO番号を設定;
-      // cfg.pin_dac = 26;  // DACを使用するため、 25 または 26 のみが選択できます;
-      cfg.pin_dac = 25;  // DACを使用するため、 25 または 26 のみが選択できます;
+      cfg.pin_dac = 26;  // DACを使用するため、 25 または 26 のみが選択できます;
 
       // PSRAMメモリ割当の設定;
       cfg.use_psram = 0;  // 0=PSRAM不使用 / 1=PSRAMとSRAMを半々使用 / 2=全部PSRAM使用;
@@ -62,4 +61,27 @@ public:
 
     setPanel(&_panel_instance);
   }
+
+  template <typename T>
+  void clearDisplay(T color = 0) { fillScreen(color); }
+
+  void display() {}
+
+  void progressBar(int x, int y, int w, int h, uint8_t val, uint16_t color = 0x09F1, uint16_t bgcolor = 0x0000) {
+    drawRect(x, y, w, h, color);
+    if (val > 100)
+      val = 100;
+    if (val == 0) {
+      fillRect(x + 1, y + 1, w - 2, h - 2, bgcolor);
+    } else {
+      int fillw = (w * (((float)val) / 100.0)) - 2;
+      fillRect(x + 1, y + 1, fillw - 2, h - 2, color);
+      fillRect(x + fillw + 1, y + 1, w - fillw - 2, h - 2, bgcolor);
+    }
+  }
+
+  const uint32_t    &textcolor   = _text_style.fore_rgb888;
+  const uint32_t    &textbgcolor = _text_style.back_rgb888;
+  const textdatum_t &textdatum   = _text_style.datum;
+  const float       &textsize    = _text_style.size_x;
 };

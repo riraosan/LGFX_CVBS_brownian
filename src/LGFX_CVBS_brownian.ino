@@ -5,7 +5,7 @@
 // modified for M5Unified https://github.com/m5stack/M5Unified
 // tested on M5Stack Core2 ESP32 IoT Development Kit for AWS IoT EduKit SKU: K010-AWS
 
-// modified for ATOM Lite by riraosan_0901
+// modified by @riraosan_0901 for M5Stack ATOM Lite
 
 #include <Arduino.h>
 #include <WiFi.h>
@@ -15,11 +15,23 @@
 #include "sfc_f65.h"
 #include "molImage.h"
 #include "snowImage.h"
+#include <Button2.h>
+
+#define TFCARD_CS_PIN -1
+#define LGFX          LGFX_8BIT_CVBS
+
+#define LGFX_ONLY
+#define USE_DISPLAY
+#define SDU_APP_NAME "Frozen NTP Clock"
+
+#include <M5StackUpdater.h>
 
 #define TRANSPARENT 0x0000
 
 // 表示
-LGFX_8BIT_CVBS display;
+static LGFX_8BIT_CVBS display;
+static Button2        button;
+WiFiClass            *_WiFi;
 
 static constexpr unsigned short infoWidth   = 32;
 static constexpr unsigned short infoHeight  = 32;
@@ -136,7 +148,8 @@ void drawTime(int div, int h, int m, int s) {
 
 // Connect to wifi
 void setupWiFi(void) {
-  WiFi.begin("youre_ssid", "youre_password");
+  _WiFi = new WiFiClass();
+  _WiFi->begin("youre_ssid", "youre_password");
 
   // Wait some time to connect to wifi
   for (int i = 0; i < 30 && WiFi.status() != WL_CONNECTED; i++) {
@@ -158,10 +171,103 @@ void setupWiFi(void) {
   }
 
   configTzTime(PSTR("JST-9"), "ntp.nict.jp");
+  for (int i = 0; i < 5000; i++) {
+    delay(1);
+  }
+
+  _WiFi->disconnect(true);
+
+  delete _WiFi;
+}
+
+bool bA = false;
+bool bB = false;
+bool bC = false;
+
+void handler(Button2 &btn) {
+  switch (btn.getType()) {
+    case clickType::single_click:
+      Serial.print("single ");
+      bB = true;
+      break;
+    case clickType::double_click:
+      Serial.print("double ");
+      bC = true;
+      break;
+    case clickType::triple_click:
+      Serial.print("triple ");
+      break;
+    case clickType::long_click:
+      Serial.print("long ");
+      bA = true;
+      break;
+    case clickType::empty:
+      break;
+    default:
+      break;
+  }
+
+  Serial.print("click");
+  Serial.print(" (");
+  Serial.print(btn.getNumberOfClicks());
+  Serial.println(")");
+}
+
+bool buttonAPressed(void) {
+  bool temp = bA;
+  bA        = false;
+
+  return temp;
+}
+
+bool buttonBPressed(void) {
+  bool temp = bB;
+  bB        = false;
+
+  return temp;
+}
+
+bool buttonCPressed(void) {
+  bool temp = bC;
+  bC        = false;
+
+  return temp;
+}
+
+void ButtonUpdate() {
+  button.loop();
+}
+
+void setupButton(void) {
+  // G39 button
+  button.setClickHandler(handler);
+  button.setDoubleClickHandler(handler);
+  button.setTripleClickHandler(handler);
+  button.setLongClickHandler(handler);
+  button.begin(39);
+
+  SDUCfg.setSDUBtnA(&buttonAPressed);
+  SDUCfg.setSDUBtnB(&buttonBPressed);
+  SDUCfg.setSDUBtnC(&buttonCPressed);
+  SDUCfg.setSDUBtnPoller(&ButtonUpdate);
 }
 
 void setup(void) {
+  setupButton();
+
   display.init();
+
+  setSDUGfx(&display);
+  display.startWrite();
+
+  checkSDUpdater(
+      SD,            // filesystem (default=SD)
+      MENU_BIN,      // path to binary (default=/menu.bin, empty string=rollback only)
+      10000,         // wait delay, (default=0, will be forced to 2000 upon ESP.restart() )
+      TFCARD_CS_PIN  // (usually default=4 but your mileage may vary)
+  );
+
+  setupWiFi();
 
   if (display.width() < display.height()) {
     display.setRotation(display.getRotation() ^ 1);
@@ -170,12 +276,10 @@ void setup(void) {
   lcd_width  = display.width();
   lcd_height = display.height();
 
-  setupWiFi();
-
   obj_info_t *a;
   for (size_t i = 0; i < obj_count; ++i) {
     a      = &objects[i];
-    a->img = i % 3;
+    a->img = i % 2;
     a->x   = rand() % lcd_width;
     a->y   = rand() % lcd_height;
     a->dx  = ((rand() & 1) + 1) * (i & 1 ? 1 : -1);
@@ -188,16 +292,16 @@ void setup(void) {
 
   icons[0].createSprite(infoWidth, infoHeight);
   icons[1].createSprite(alertWidth, alertHeight);
-  icons[2].createSprite(closeWidth, closeHeight);
+  // icons[2].createSprite(closeWidth, closeHeight);
 
   icons[0].setSwapBytes(true);
   icons[1].setSwapBytes(true);
-  icons[2].setSwapBytes(true);
+  // icons[2].setSwapBytes(true);
 
   // replace with molecules
   icons[0].pushImage(0, 0, infoWidth, infoHeight, fulg1);
   icons[1].pushImage(0, 0, alertWidth, alertHeight, fulg2);
-  icons[2].pushImage(0, 0, closeWidth, closeHeight, fulg3);
+  // icons[2].pushImage(0, 0, closeWidth, closeHeight, fulg3);
 
   uint32_t div = 2;
   for (;;) {
@@ -205,12 +309,12 @@ void setup(void) {
     bool fail     = false;
     for (std::uint32_t i = 0; !fail && i < 2; ++i) {
       sprites[i].setColorDepth(display.getColorDepth());
-      sprites[i].setFont(&fonts::Font2);
+      // sprites[i].setFont(&fonts::Font2);
       fail = !sprites[i].createSprite(lcd_width, sprite_height);
     }
     if (!fail) break;
-    log_e("here");
-    for (std::uint32_t i = 0; i < 2; ++i) {
+    log_e("can't allocate");
+    for (std::uint32_t i = 0; i < div; ++i) {
       sprites[i].deleteSprite();
     }
     ++div;
@@ -227,18 +331,18 @@ void setup(void) {
     }
     if (!fail) break;
     log_e("can't allocate");
-    for (std::uint32_t i = 0; i < div; ++i) {
+    for (std::uint32_t i = 0; i < 2; ++i) {
       timeSprite[i].deleteSprite();
     }
     ++div;
   }
-
-  display.startWrite();
 }
 
 void loop(void) {
   static uint8_t flip      = 0;
   static uint8_t time_flip = 0;
+
+  ButtonUpdate();
 
   obj_info_t *a;
   for (int i = 0; i != obj_count; i++) {
