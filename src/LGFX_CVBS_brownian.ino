@@ -253,13 +253,11 @@ void setupButton(void) {
 }
 
 void setup(void) {
-  setupButton();
-
   display.init();
-
-  setSDUGfx(&display);
   display.startWrite();
 
+  setupButton();
+  setSDUGfx(&display);
   checkSDUpdater(
       SD,            // filesystem (default=SD)
       MENU_BIN,      // path to binary (default=/menu.bin, empty string=rollback only)
