@@ -14,18 +14,13 @@
 #include <LGFX_8BIT_CVBS.h>
 #include "sfc_f65.h"
 #include "molImage.h"
+#include "j_springImage.h"
 
 #define TRANSPARENT 0x0000
 
 // 表示
 LGFX_8BIT_CVBS display;
 
-static constexpr unsigned short infoWidth   = 32;
-static constexpr unsigned short infoHeight  = 32;
-static constexpr unsigned short alertWidth  = 32;
-static constexpr unsigned short alertHeight = 32;
-static constexpr unsigned short closeWidth  = 32;
-static constexpr unsigned short closeHeight = 32;
 
 static uint32_t lcd_width;
 static uint32_t lcd_height;
@@ -185,18 +180,18 @@ void setup(void) {
     a->dz  = (float)((rand() % 10) + 1) / 100;
   }
 
-  icons[0].createSprite(infoWidth, infoHeight);
-  icons[1].createSprite(alertWidth, alertHeight);
-  icons[2].createSprite(closeWidth, closeHeight);
+  icons[0].createSprite(32, 32);
+  icons[1].createSprite(32, 32);
+  icons[2].createSprite(32, 32);
 
   icons[0].setSwapBytes(true);
   icons[1].setSwapBytes(true);
   icons[2].setSwapBytes(true);
 
   // replace with molecules
-  icons[0].pushImage(0, 0, infoWidth, infoHeight, dioxide);
-  icons[1].pushImage(0, 0, alertWidth, alertHeight, nitrogen);
-  icons[2].pushImage(0, 0, closeWidth, closeHeight, oxygen);
+  icons[0].pushImage(0, 0, 32, 32, _oni);
+  icons[1].pushImage(0, 0, 32, 32, _mame);
+  icons[2].pushImage(0, 0, 32, 32, _sakura);
 
   uint32_t div = 2;
   for (;;) {
