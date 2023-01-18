@@ -15,6 +15,7 @@
 #include "sfc_f65.h"
 #include "molImage.h"
 #include "snowImage.h"
+#include "j_springImage.h"
 #include <Button2.h>
 
 #define TFCARD_CS_PIN -1
@@ -31,8 +32,6 @@
 // 表示
 static LGFX_8BIT_CVBS display;
 static Button2        button;
-WiFiClass            *_WiFi;
-
 
 static uint32_t lcd_width;
 static uint32_t lcd_height;
@@ -140,37 +139,27 @@ void drawTime(int div, int h, int m, int s) {
   }
 }
 
+constexpr uint8_t progress[] = {'-', '\\', '|', '/'};
+
 // Connect to wifi
 void setupWiFi(void) {
-  WiFi.begin("youre_ssid", "youre_password");
+  WiFi.begin("", "");
 
   // Wait some time to connect to wifi
   for (int i = 0; i < 30 && WiFi.status() != WL_CONNECTED; i++) {
     display.setCursor(display.width() >> 1, display.height() >> 1);
-    display.print("|");
-    delay(500);
-
-    display.setCursor(display.width() >> 1, display.height() >> 1);
-    display.print("/");
-    delay(500);
-
-    display.setCursor(display.width() >> 1, display.height() >> 1);
-    display.print("-");
-    delay(500);
-
-    display.setCursor(display.width() >> 1, display.height() >> 1);
-    display.print("\\");
+    display.printf("%c", progress[(i + 1) % 4]);
     delay(500);
   }
 
   configTzTime(PSTR("JST-9"), "ntp.nict.jp");
-  for (int i = 0; i < 5000; i++) {
-    delay(1);
+  for (int i = 0; i < 10; i++) {
+    display.setCursor(display.width() >> 1, display.height() >> 1);
+    display.printf("%c", progress[(i + 1) % 4]);
+    delay(500);
   }
 
-  _WiFi->disconnect(true);
-
-  delete _WiFi;
+  WiFi.disconnect(true);
 }
 
 bool bA = false;
@@ -270,7 +259,7 @@ void setup(void) {
   obj_info_t *a;
   for (size_t i = 0; i < obj_count; ++i) {
     a      = &objects[i];
-    a->img = i % 2;
+    a->img = i % 3;
     a->x   = rand() % lcd_width;
     a->y   = rand() % lcd_height;
     a->dx  = ((rand() & 1) + 1) * (i & 1 ? 1 : -1);
@@ -287,12 +276,21 @@ void setup(void) {
 
   icons[0].setSwapBytes(true);
   icons[1].setSwapBytes(true);
-  // icons[2].setSwapBytes(true);
+  icons[2].setSwapBytes(true);
 
-  // replace with molecules
+#if defined(MOL)
+  icons[0].pushImage(0, 0, 32, 32, oxygen);
+  icons[1].pushImage(0, 0, 32, 32, dioxide);
+  icons[2].pushImage(0, 0, 32, 32, nitrogen);
+#elif defined(SNOW)
+  icons[0].pushImage(0, 0, 32, 32, fulg1);
+  icons[1].pushImage(0, 0, 32, 32, fulg2);
+  icons[2].pushImage(0, 0, 32, 32, fulg3);
+#elif defined(JSPRING)
   icons[0].pushImage(0, 0, 32, 32, _oni);
   icons[1].pushImage(0, 0, 32, 32, _mame);
   icons[2].pushImage(0, 0, 32, 32, _sakura);
+#endif
 
   uint32_t div = 2;
   for (;;) {
@@ -300,7 +298,6 @@ void setup(void) {
     bool fail     = false;
     for (std::uint32_t i = 0; !fail && i < 2; ++i) {
       sprites[i].setColorDepth(display.getColorDepth());
-      // sprites[i].setFont(&fonts::Font2);
       fail = !sprites[i].createSprite(lcd_width, sprite_height);
     }
     if (!fail) break;
