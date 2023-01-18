@@ -23,7 +23,14 @@
 
 #define LGFX_ONLY
 #define USE_DISPLAY
-#define SDU_APP_NAME "Frozen NTP Clock"
+
+#if defined(MOL)
+#define SDU_APP_NAME "MOL NTP Clock"
+#elif defined(SNOW)
+#define SDU_APP_NAME "SNOW NTP Clock"
+#elif defined(JSPRING)
+#define SDU_APP_NAME "J-SPRING NTP Clock"
+#endif
 
 #include <M5StackUpdater.h>
 
