@@ -42,7 +42,7 @@ public:
       // cfg.signal_type = cfg.signal_type_t::PAL_N;
 
       // 出力先のGPIO番号を設定;
-      cfg.pin_dac = 25;  // DACを使用するため、 25 または 26 のみが選択できます;
+      cfg.pin_dac = 26;  // DACを使用するため、 25 または 26 のみが選択できます;
 
       // PSRAMメモリ割当の設定;
       cfg.use_psram = 0;  // 0=PSRAM不使用 / 1=PSRAMとSRAMを半々使用 / 2=全部PSRAM使用;

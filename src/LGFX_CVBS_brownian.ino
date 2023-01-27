@@ -91,7 +91,7 @@ static M5Canvas     icons[3];
 static int_fast16_t sprite_height;
 static int_fast16_t time_height;
 
-static M5Canvas timeSprite[2];
+static M5Canvas timeSprite;
 
 const unsigned short *f65[] = {
     sfc_43x65_f65_0,
@@ -107,7 +107,7 @@ const unsigned short *f65[] = {
     sfc_19x65_f65_colon,
     sfc_19x65_f65_dot};
 
-void drawTime(int div, int h, int m, int s) {
+void drawTime(int flip, int h, int m, int s) {
   int hA = h / 10;
   int hR = h % 10;
   int mA = m / 10;
@@ -115,35 +115,51 @@ void drawTime(int div, int h, int m, int s) {
   int sA = s / 10;
   int sR = s % 10;
 
-  timeSprite[div].fillSprite(TRANSPARENT);
+  int fontWidth = 10;
+  int offset_y  = 10;
 
-  int fontWidth = 43;
+  // hour(24h)
+  fontWidth += 0;
+  timeSprite.fillSprite(TRANSPARENT);
+  timeSprite.pushImage(0, 0, 43, 65, (uint16_t *)f65[hA], TRANSPARENT);
+  timeSprite.pushSprite(&sprites[flip], fontWidth, offset_y, TRANSPARENT);
 
-  if (div == 0) {
-    // hour(24h)
-    timeSprite[div].pushImage(fontWidth * 0, -33, fontWidth, 65, (uint16_t *)f65[hA], TRANSPARENT);
-    timeSprite[div].pushImage(fontWidth * 1, -33, fontWidth, 65, (uint16_t *)f65[hR], TRANSPARENT);
-    timeSprite[div].pushImage(fontWidth * 2 + 6, -33, 19, 65, (uint16_t *)f65[10], TRANSPARENT);
-    // minuits
-    timeSprite[div].pushImage(fontWidth * 3 - 12, -33, fontWidth, 65, (uint16_t *)f65[mA], TRANSPARENT);
-    timeSprite[div].pushImage(fontWidth * 4 - 12, -33, fontWidth, 65, (uint16_t *)f65[mR], TRANSPARENT);
-    timeSprite[div].pushImage(fontWidth * 5 - 6, -33, 19, 65, (uint16_t *)f65[10], TRANSPARENT);
-    // seconds
-    timeSprite[div].pushImage(fontWidth * 6 - 24, -33, fontWidth, 65, (uint16_t *)f65[sA], TRANSPARENT);
-    timeSprite[div].pushImage(fontWidth * 7 - 24, -33, fontWidth, 65, (uint16_t *)f65[sR], TRANSPARENT);
-  } else {
-    // hour(24h)
-    timeSprite[div].pushImage(fontWidth * 0, 0, fontWidth, 65, (uint16_t *)f65[hA], TRANSPARENT);
-    timeSprite[div].pushImage(fontWidth * 1, 0, fontWidth, 65, (uint16_t *)f65[hR], TRANSPARENT);
-    timeSprite[div].pushImage(fontWidth * 2 + 6, 0, 19, 65, (uint16_t *)f65[10], TRANSPARENT);
-    // minuits
-    timeSprite[div].pushImage(fontWidth * 3 - 12, 0, fontWidth, 65, (uint16_t *)f65[mA], TRANSPARENT);
-    timeSprite[div].pushImage(fontWidth * 4 - 12, 0, fontWidth, 65, (uint16_t *)f65[mR], TRANSPARENT);
-    timeSprite[div].pushImage(fontWidth * 5 - 6, 0, 19, 65, (uint16_t *)f65[10], TRANSPARENT);
-    // seconds
-    timeSprite[div].pushImage(fontWidth * 6 - 24, 0, fontWidth, 65, (uint16_t *)f65[sA], TRANSPARENT);
-    timeSprite[div].pushImage(fontWidth * 7 - 24, 0, fontWidth, 65, (uint16_t *)f65[sR], TRANSPARENT);
-  }
+  fontWidth += 43;
+  timeSprite.fillSprite(TRANSPARENT);
+  timeSprite.pushImage(0, 0, 43, 65, (uint16_t *)f65[hR], TRANSPARENT);
+  timeSprite.pushSprite(&sprites[flip], fontWidth, offset_y, TRANSPARENT);
+
+  fontWidth += 43;
+  timeSprite.fillSprite(TRANSPARENT);
+  timeSprite.pushImage(0, 0, 19, 65, (uint16_t *)f65[10], TRANSPARENT);
+  timeSprite.pushSprite(&sprites[flip], fontWidth, offset_y, TRANSPARENT);
+
+  // minuits
+  fontWidth += 19;
+  timeSprite.fillSprite(TRANSPARENT);
+  timeSprite.pushImage(0, 0, 43, 65, (uint16_t *)f65[mA], TRANSPARENT);
+  timeSprite.pushSprite(&sprites[flip], fontWidth, offset_y, TRANSPARENT);
+
+  fontWidth += 43;
+  timeSprite.fillSprite(TRANSPARENT);
+  timeSprite.pushImage(0, 0, 43, 65, (uint16_t *)f65[mR], TRANSPARENT);
+  timeSprite.pushSprite(&sprites[flip], fontWidth, offset_y, TRANSPARENT);
+
+  fontWidth += 43;
+  timeSprite.fillSprite(TRANSPARENT);
+  timeSprite.pushImage(0, 0, 19, 65, (uint16_t *)f65[10], TRANSPARENT);
+  timeSprite.pushSprite(&sprites[flip], fontWidth, offset_y, TRANSPARENT);
+
+  // seconds
+  fontWidth += 19;
+  timeSprite.fillSprite(TRANSPARENT);
+  timeSprite.pushImage(0, 0, 43, 65, (uint16_t *)f65[sA], TRANSPARENT);
+  timeSprite.pushSprite(&sprites[flip], fontWidth, offset_y, TRANSPARENT);
+
+  fontWidth += 43;
+  timeSprite.fillSprite(TRANSPARENT);
+  timeSprite.pushImage(0, 0, 43, 65, (uint16_t *)f65[sR], TRANSPARENT);
+  timeSprite.pushSprite(&sprites[flip], fontWidth, offset_y, TRANSPARENT);
 }
 
 constexpr uint8_t progress[] = {'-', '\\', '|', '/'};
@@ -315,22 +331,9 @@ void setup(void) {
     ++div;
   }
 
-  div = 2;
-  for (;;) {
-    time_height = (65 + div - 1) / div;
-    bool fail   = false;
-    for (std::uint32_t i = 0; !fail && i < div; ++i) {
-      timeSprite[i].setColorDepth(display.getColorDepth());
-      timeSprite[i].setSwapBytes(true);
-      fail = !timeSprite[i].createSprite(lcd_width, time_height);
-    }
-    if (!fail) break;
-    log_e("can't allocate");
-    for (std::uint32_t i = 0; i < 2; ++i) {
-      timeSprite[i].deleteSprite();
-    }
-    ++div;
-  }
+  timeSprite.setColorDepth(display.getColorDepth());
+  timeSprite.setSwapBytes(true);
+  timeSprite.createSprite(43, 65);
 }
 
 void loop(void) {
@@ -352,18 +355,10 @@ void loop(void) {
       icons[a->img].pushRotateZoom(&sprites[flip], a->x, a->y - y, a->r, a->z, a->z, 0);
     }
 
-    display.display();
-
     if (y == 0) {
       struct tm timeinfo;
       getLocalTime(&timeinfo);
-
-      for (int_fast16_t z = 0; z < 65; z += time_height) {
-        time_flip = time_flip ? 0 : 1;
-        timeSprite[time_flip].clear();
-        drawTime(time_flip, timeinfo.tm_hour, timeinfo.tm_min, timeinfo.tm_sec);
-        timeSprite[time_flip].pushSprite(&sprites[flip], 8, z + 27, TRANSPARENT);
-      }
+      drawTime(flip, timeinfo.tm_hour, timeinfo.tm_min, timeinfo.tm_sec);
 
       if ((timeinfo.tm_hour == 12) && (timeinfo.tm_min == 0) && (timeinfo.tm_sec == 0)) {
         ESP.restart();
