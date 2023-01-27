@@ -18,7 +18,7 @@
 #include "j_springImage.h"
 #include <Button2.h>
 
-#define TFCARD_CS_PIN -1
+#define TFCARD_CS_PIN 4
 #define LGFX          LGFX_8BIT_CVBS
 
 #define LGFX_ONLY
@@ -121,28 +121,28 @@ void drawTime(int div, int h, int m, int s) {
 
   if (div == 0) {
     // hour(24h)
-    timeSprite[div].pushImage(fontWidth * 0 + 12, -33, fontWidth, 65, (uint16_t *)f65[hA], TRANSPARENT);
-    timeSprite[div].pushImage(fontWidth * 1 + 12, -33, fontWidth, 65, (uint16_t *)f65[hR], TRANSPARENT);
-    timeSprite[div].pushImage(fontWidth * 2 + 18, -33, 19, 65, (uint16_t *)f65[10], TRANSPARENT);
+    timeSprite[div].pushImage(fontWidth * 0, -33, fontWidth, 65, (uint16_t *)f65[hA], TRANSPARENT);
+    timeSprite[div].pushImage(fontWidth * 1, -33, fontWidth, 65, (uint16_t *)f65[hR], TRANSPARENT);
+    timeSprite[div].pushImage(fontWidth * 2 + 6, -33, 19, 65, (uint16_t *)f65[10], TRANSPARENT);
     // minuits
-    timeSprite[div].pushImage(fontWidth * 3, -33, fontWidth, 65, (uint16_t *)f65[mA], TRANSPARENT);
-    timeSprite[div].pushImage(fontWidth * 4, -33, fontWidth, 65, (uint16_t *)f65[mR], TRANSPARENT);
-    timeSprite[div].pushImage(fontWidth * 5 + 6, -33, 19, 65, (uint16_t *)f65[10], TRANSPARENT);
+    timeSprite[div].pushImage(fontWidth * 3 - 12, -33, fontWidth, 65, (uint16_t *)f65[mA], TRANSPARENT);
+    timeSprite[div].pushImage(fontWidth * 4 - 12, -33, fontWidth, 65, (uint16_t *)f65[mR], TRANSPARENT);
+    timeSprite[div].pushImage(fontWidth * 5 - 6, -33, 19, 65, (uint16_t *)f65[10], TRANSPARENT);
     // seconds
-    timeSprite[div].pushImage(fontWidth * 6 - 12, -33, fontWidth, 65, (uint16_t *)f65[sA], TRANSPARENT);
-    timeSprite[div].pushImage(fontWidth * 7 - 12, -33, fontWidth, 65, (uint16_t *)f65[sR], TRANSPARENT);
+    timeSprite[div].pushImage(fontWidth * 6 - 24, -33, fontWidth, 65, (uint16_t *)f65[sA], TRANSPARENT);
+    timeSprite[div].pushImage(fontWidth * 7 - 24, -33, fontWidth, 65, (uint16_t *)f65[sR], TRANSPARENT);
   } else {
     // hour(24h)
-    timeSprite[div].pushImage(fontWidth * 0 + 12, 0, fontWidth, 65, (uint16_t *)f65[hA], TRANSPARENT);
-    timeSprite[div].pushImage(fontWidth * 1 + 12, 0, fontWidth, 65, (uint16_t *)f65[hR], TRANSPARENT);
-    timeSprite[div].pushImage(fontWidth * 2 + 18, 0, 19, 65, (uint16_t *)f65[10], TRANSPARENT);
+    timeSprite[div].pushImage(fontWidth * 0, 0, fontWidth, 65, (uint16_t *)f65[hA], TRANSPARENT);
+    timeSprite[div].pushImage(fontWidth * 1, 0, fontWidth, 65, (uint16_t *)f65[hR], TRANSPARENT);
+    timeSprite[div].pushImage(fontWidth * 2 + 6, 0, 19, 65, (uint16_t *)f65[10], TRANSPARENT);
     // minuits
-    timeSprite[div].pushImage(fontWidth * 3, 0, fontWidth, 65, (uint16_t *)f65[mA], TRANSPARENT);
-    timeSprite[div].pushImage(fontWidth * 4, 0, fontWidth, 65, (uint16_t *)f65[mR], TRANSPARENT);
-    timeSprite[div].pushImage(fontWidth * 5 + 6, 0, 19, 65, (uint16_t *)f65[10], TRANSPARENT);
+    timeSprite[div].pushImage(fontWidth * 3 - 12, 0, fontWidth, 65, (uint16_t *)f65[mA], TRANSPARENT);
+    timeSprite[div].pushImage(fontWidth * 4 - 12, 0, fontWidth, 65, (uint16_t *)f65[mR], TRANSPARENT);
+    timeSprite[div].pushImage(fontWidth * 5 - 6, 0, 19, 65, (uint16_t *)f65[10], TRANSPARENT);
     // seconds
-    timeSprite[div].pushImage(fontWidth * 6 - 12, 0, fontWidth, 65, (uint16_t *)f65[sA], TRANSPARENT);
-    timeSprite[div].pushImage(fontWidth * 7 - 12, 0, fontWidth, 65, (uint16_t *)f65[sR], TRANSPARENT);
+    timeSprite[div].pushImage(fontWidth * 6 - 24, 0, fontWidth, 65, (uint16_t *)f65[sA], TRANSPARENT);
+    timeSprite[div].pushImage(fontWidth * 7 - 24, 0, fontWidth, 65, (uint16_t *)f65[sR], TRANSPARENT);
   }
 }
 
@@ -150,7 +150,7 @@ constexpr uint8_t progress[] = {'-', '\\', '|', '/'};
 
 // Connect to wifi
 void setupWiFi(void) {
-  WiFi.begin("", "");
+  WiFi.begin("俺のiPhone", "room03601");
 
   // Wait some time to connect to wifi
   for (int i = 0; i < 30 && WiFi.status() != WL_CONNECTED; i++) {
@@ -322,7 +322,7 @@ void setup(void) {
     for (std::uint32_t i = 0; !fail && i < div; ++i) {
       timeSprite[i].setColorDepth(display.getColorDepth());
       timeSprite[i].setSwapBytes(true);
-      fail = !timeSprite[i].createSprite(344, time_height);
+      fail = !timeSprite[i].createSprite(lcd_width, time_height);
     }
     if (!fail) break;
     log_e("can't allocate");
