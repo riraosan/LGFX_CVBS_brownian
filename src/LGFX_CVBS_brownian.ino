@@ -26,10 +26,13 @@
 
 #if defined(MOL)
 #define SDU_APP_NAME "MOL NTP Clock"
+#define SDU_APP_PATH "/01_MOL_NTP_CLOCK.bin"
 #elif defined(SNOW)
 #define SDU_APP_NAME "SNOW NTP Clock"
+#define SDU_APP_PATH "/02_SNOW_NTP_CLOCK.bin"
 #elif defined(JSPRING)
-#define SDU_APP_NAME "J-SPRING NTP Clock"
+#define SDU_APP_NAME "JSPRING NTP Clock"
+#define SDU_APP_PATH "/03_JSPRING_NTP_CLOCK.bin"
 #endif
 
 #include <M5StackUpdater.h>
@@ -166,7 +169,7 @@ constexpr uint8_t progress[] = {'-', '\\', '|', '/'};
 
 // Connect to wifi
 void setupWiFi(void) {
-  WiFi.begin("", "");
+  WiFi.begin("TODO", "TODO");
 
   // Wait some time to connect to wifi
   for (int i = 0; i < 30 && WiFi.status() != WL_CONNECTED; i++) {
@@ -257,6 +260,14 @@ void setupButton(void) {
   SDUCfg.setSDUBtnPoller(&ButtonUpdate);
 }
 
+void copyToSketch(void){
+  if (saveSketchToFS(SD, SDU_APP_PATH, TFCARD_CS_PIN)) {
+    log_i("Copy successful !");
+  } else {
+    log_e("Copy failed !");
+  }
+}
+
 void setup(void) {
   display.init();
   display.startWrite();
@@ -269,6 +280,8 @@ void setup(void) {
       10000,         // wait delay, (default=0, will be forced to 2000 upon ESP.restart() )
       TFCARD_CS_PIN  // (usually default=4 but your mileage may vary)
   );
+
+  //copyToSketch();
 
   setupWiFi();
 
