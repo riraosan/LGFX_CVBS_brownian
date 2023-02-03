@@ -13,9 +13,6 @@
 #include <M5GFX.h>
 #include <LGFX_8BIT_CVBS.h>
 #include "sfc_f65.h"
-#include "molImage.h"
-#include "snowImage.h"
-#include "j_springImage.h"
 #include <Button2.h>
 
 #define TFCARD_CS_PIN 4
@@ -52,10 +49,41 @@ struct obj_info_t {
   int_fast16_t dx;
   int_fast16_t dy;
   int_fast8_t  img;
+  int_fast16_t width;
+  int_fast16_t height;
+  int_fast16_t transX;
+  int_fast16_t transY;
+  int_fast16_t z;
   float        r;
-  float        z;
   float        dr;
   float        dz;
+  float        scale;
+
+  void translate(x, y) {
+    transX = x;
+    transY = y;
+  }
+
+  void draw3D(void) {
+    scale = 1 / z;
+    x     = transX + x * scale;
+    y     = transY + y * scale;
+
+    if (x < 0) {
+      x = 0;
+    } else if (x >= lcd_width) {
+      x = lcd_width - 1;
+    }
+
+    if (y < 0) {
+      y = 0;
+    } else if (y >= lcd_height) {
+      y = lcd_height - 1;
+    }
+
+    width *= scale;
+    height *= scale;
+  }
 
   void move() {
     r += dr;
@@ -90,7 +118,7 @@ static constexpr size_t obj_count = 30;
 static obj_info_t       objects[obj_count];
 
 static M5Canvas     sprites[2];
-static M5Canvas     icons[3];
+static M5Canvas     rectangle;
 static int_fast16_t sprite_height;
 static int_fast16_t time_height;
 
@@ -260,31 +288,7 @@ void setupButton(void) {
   SDUCfg.setSDUBtnPoller(&ButtonUpdate);
 }
 
-void copyToSketch(void){
-  if (saveSketchToFS(SD, SDU_APP_PATH, TFCARD_CS_PIN)) {
-    log_i("Copy successful !");
-  } else {
-    log_e("Copy failed !");
-  }
-}
-
-void setup(void) {
-  display.init();
-  display.startWrite();
-
-  setupButton();
-  setSDUGfx(&display);
-  checkSDUpdater(
-      SD,            // filesystem (default=SD)
-      MENU_BIN,      // path to binary (default=/menu.bin, empty string=rollback only)
-      10000,         // wait delay, (default=0, will be forced to 2000 upon ESP.restart() )
-      TFCARD_CS_PIN  // (usually default=4 but your mileage may vary)
-  );
-
-  //copyToSketch();
-
-  setupWiFi();
-
+void setupSprite(void) {
   if (display.width() < display.height()) {
     display.setRotation(display.getRotation() ^ 1);
   }
@@ -294,39 +298,17 @@ void setup(void) {
 
   obj_info_t *a;
   for (size_t i = 0; i < obj_count; ++i) {
-    a      = &objects[i];
-    a->img = i % 3;
-    a->x   = rand() % lcd_width;
-    a->y   = rand() % lcd_height;
-    a->dx  = ((rand() & 1) + 1) * (i & 1 ? 1 : -1);
-    a->dy  = ((rand() & 1) + 1) * (i & 2 ? 1 : -1);
-    a->dr  = ((rand() & 1) + 1) * (i & 2 ? 1 : -1);
-    a->r   = 0;
-    a->z   = (float)((rand() % 10) + 10) / 10;
-    a->dz  = (float)((rand() % 10) + 1) / 100;
+    a         = &objects[i];
+    a->x      = rand() % lcd_width;
+    a->y      = rand() % lcd_height;
+    a->width  = 100;
+    a->height = 80;
+    // a->dx  = ((rand() & 1) + 1) * (i & 1 ? 1 : -1);
+    // a->dy  = ((rand() & 1) + 1) * (i & 2 ? 1 : -1);
+    // a->dr  = ((rand() & 1) + 1) * (i & 2 ? 1 : -1);
+    a->r = 0;
+    a->z = rand() % 10;  // 0 - 9
   }
-
-  icons[0].createSprite(32, 32);
-  icons[1].createSprite(32, 32);
-  icons[2].createSprite(32, 32);
-
-  icons[0].setSwapBytes(true);
-  icons[1].setSwapBytes(true);
-  icons[2].setSwapBytes(true);
-
-#if defined(MOL)
-  icons[0].pushImage(0, 0, 32, 32, oxygen);
-  icons[1].pushImage(0, 0, 32, 32, dioxide);
-  icons[2].pushImage(0, 0, 32, 32, nitrogen);
-#elif defined(SNOW)
-  icons[0].pushImage(0, 0, 32, 32, fulg1);
-  icons[1].pushImage(0, 0, 32, 32, fulg2);
-  icons[2].pushImage(0, 0, 32, 32, fulg3);
-#elif defined(JSPRING)
-  icons[0].pushImage(0, 0, 32, 32, _oni);
-  icons[1].pushImage(0, 0, 32, 32, _mame);
-  icons[2].pushImage(0, 0, 32, 32, _sakura);
-#endif
 
   uint32_t div = 2;
   for (;;) {
@@ -344,9 +326,30 @@ void setup(void) {
     ++div;
   }
 
+  rectangle.setColorDepth(display.getColorDepth());
+  rectangle.setSwapBytes(true);
+  rectangle.createSprite(100, 80);
+
   timeSprite.setColorDepth(display.getColorDepth());
   timeSprite.setSwapBytes(true);
   timeSprite.createSprite(43, 65);
+}
+
+void setup(void) {
+  display.init();
+  display.startWrite();
+
+  setupButton();
+  setSDUGfx(&display);
+  checkSDUpdater(
+      SD,            // filesystem (default=SD)
+      MENU_BIN,      // path to binary (default=/menu.bin, empty string=rollback only)
+      10000,         // wait delay, (default=0, will be forced to 2000 upon ESP.restart() )
+      TFCARD_CS_PIN  // (usually default=4 but your mileage may vary)
+  );
+
+  setupWiFi();
+  setupSprite();
 }
 
 void loop(void) {
