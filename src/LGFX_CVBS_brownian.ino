@@ -21,16 +21,8 @@
 #define LGFX_ONLY
 #define USE_DISPLAY
 
-#if defined(MOL)
-#define SDU_APP_NAME "MOL NTP Clock"
-#define SDU_APP_PATH "/01_MOL_NTP_CLOCK.bin"
-#elif defined(SNOW)
-#define SDU_APP_NAME "SNOW NTP Clock"
-#define SDU_APP_PATH "/02_SNOW_NTP_CLOCK.bin"
-#elif defined(JSPRING)
-#define SDU_APP_NAME "JSPRING NTP Clock"
-#define SDU_APP_PATH "/03_JSPRING_NTP_CLOCK.bin"
-#endif
+#define SDU_APP_NAME "2D3D NTP Clock"
+#define SDU_APP_PATH "/2D3D_NTP_CLOCK.bin"
 
 #include <M5StackUpdater.h>
 
@@ -53,36 +45,28 @@ struct obj_info_t {
   int_fast16_t height;
   int_fast16_t transX;
   int_fast16_t transY;
-  int_fast16_t z;
+  float        z;
   float        r;
   float        dr;
   float        dz;
-  float        scale;
+  float        _scale;
 
-  void translate(x, y) {
-    transX = x;
-    transY = y;
+  void translate(int_fast16_t trans_x, int_fast16_t trans_y) {
+    transX = trans_x;
+    transY = trans_y;
   }
 
   void draw3D(void) {
-    scale = 1 / z;
-    x     = transX + x * scale;
-    y     = transY + y * scale;
+    _scale = 1.0F / z;
 
-    if (x < 0) {
-      x = 0;
-    } else if (x >= lcd_width) {
-      x = lcd_width - 1;
+    dx = transX + x * _scale;
+    dy = transY + y * _scale;
+
+    z -= 0.1;
+    if (z < 0) {
+      z = 100;
     }
-
-    if (y < 0) {
-      y = 0;
-    } else if (y >= lcd_height) {
-      y = lcd_height - 1;
-    }
-
-    width *= scale;
-    height *= scale;
+    // log_d("x=%d, y=%d, scale=%.4f", x, y, _scale);
   }
 
   void move() {
@@ -197,7 +181,7 @@ constexpr uint8_t progress[] = {'-', '\\', '|', '/'};
 
 // Connect to wifi
 void setupWiFi(void) {
-  WiFi.begin("TODO", "TODO");
+  WiFi.begin("ST-790-1-HEMS24", "0123456789");
 
   // Wait some time to connect to wifi
   for (int i = 0; i < 30 && WiFi.status() != WL_CONNECTED; i++) {
@@ -298,16 +282,20 @@ void setupSprite(void) {
 
   obj_info_t *a;
   for (size_t i = 0; i < obj_count; ++i) {
-    a         = &objects[i];
-    a->x      = rand() % lcd_width;
-    a->y      = rand() % lcd_height;
+    a = &objects[i];
+    a->translate(lcd_width >> 1, lcd_height >> 1);
+    a->x = random(-(lcd_width >> 1), lcd_width >> 1);
+    a->y = random(-(lcd_height >> 1), lcd_height >> 1);
+
+    // log_i("x=%d y=%d", a->x, a->y);
     a->width  = 100;
     a->height = 80;
     // a->dx  = ((rand() & 1) + 1) * (i & 1 ? 1 : -1);
     // a->dy  = ((rand() & 1) + 1) * (i & 2 ? 1 : -1);
     // a->dr  = ((rand() & 1) + 1) * (i & 2 ? 1 : -1);
     a->r = 0;
-    a->z = rand() % 10;  // 0 - 9
+    a->z = random(10, 100);
+    a->draw3D();
   }
 
   uint32_t div = 2;
@@ -359,16 +347,18 @@ void loop(void) {
   ButtonUpdate();
 
   obj_info_t *a;
-  for (int i = 0; i != obj_count; i++) {
-    objects[i].move();
+  for (int i = 0; i < obj_count; ++i) {
+    objects[i].draw3D();
   }
 
   for (int_fast16_t y = 0; y < lcd_height; y += sprite_height) {
     flip = flip ? 0 : 1;
     sprites[flip].clear();
-    for (size_t i = 0; i != obj_count; i++) {
+    for (size_t i = 0; i < obj_count; ++i) {
       a = &objects[i];
-      icons[a->img].pushRotateZoom(&sprites[flip], a->x, a->y - y, a->r, a->z, a->z, 0);
+      rectangle.fillRect(0, 0, 100, 80, TFT_WHITE);
+      rectangle.drawRect(0, 0, 100, 80, TFT_NAVY);
+      rectangle.pushRotateZoom(&sprites[flip], a->dx, a->dy - y, a->r, a->_scale, a->_scale, TRANSPARENT);
     }
 
     if (y == 0) {
