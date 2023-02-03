@@ -7,6 +7,10 @@
 
 // modified by @riraosan_0901 for M5Stack ATOM Lite
 
+#include <vector>
+#include <algorithm>
+#include <functional>
+
 #include <Arduino.h>
 #include <WiFi.h>
 #include <time.h>
@@ -98,8 +102,16 @@ struct obj_info_t {
   }
 };
 
+bool operator<(const obj_info_t &left, const obj_info_t &right) {
+  return left.z < right.z;
+}
+
+bool operator>(const obj_info_t &left, const obj_info_t &right) {
+  return left.z > right.z;
+}
+
 static constexpr size_t obj_count = 30;
-static obj_info_t       objects[obj_count];
+std::vector<obj_info_t> obj;
 
 static M5Canvas     sprites[2];
 static M5Canvas     rectangle;
@@ -280,22 +292,20 @@ void setupSprite(void) {
   lcd_width  = display.width();
   lcd_height = display.height();
 
-  obj_info_t *a;
+  obj_info_t data;
   for (size_t i = 0; i < obj_count; ++i) {
-    a = &objects[i];
-    a->translate(lcd_width >> 1, lcd_height >> 1);
-    a->x = random(-(lcd_width >> 1), lcd_width >> 1);
-    a->y = random(-(lcd_height >> 1), lcd_height >> 1);
+    data.translate(lcd_width >> 1, lcd_height >> 1);
 
-    // log_i("x=%d y=%d", a->x, a->y);
-    a->width  = 100;
-    a->height = 80;
-    // a->dx  = ((rand() & 1) + 1) * (i & 1 ? 1 : -1);
-    // a->dy  = ((rand() & 1) + 1) * (i & 2 ? 1 : -1);
-    // a->dr  = ((rand() & 1) + 1) * (i & 2 ? 1 : -1);
-    a->r = 0;
-    a->z = random(10, 100);
-    a->draw3D();
+    data.x      = random(-(lcd_width >> 1), lcd_width >> 1);
+    data.y      = random(-(lcd_height >> 1), lcd_height >> 1);
+    data.width  = 100;
+    data.height = 80;
+    data.r      = 0;
+    data.z      = random(10, 100);
+
+    data.draw3D();
+
+    obj.push_back(data);
   }
 
   uint32_t div = 2;
@@ -346,19 +356,21 @@ void loop(void) {
 
   ButtonUpdate();
 
-  obj_info_t *a;
-  for (int i = 0; i < obj_count; ++i) {
-    objects[i].draw3D();
+  for (int i = 0; i < obj.size(); ++i) {
+    obj[i].draw3D();
   }
+
+  std::sort(obj.begin(), obj.end());
 
   for (int_fast16_t y = 0; y < lcd_height; y += sprite_height) {
     flip = flip ? 0 : 1;
     sprites[flip].clear();
-    for (size_t i = 0; i < obj_count; ++i) {
-      a = &objects[i];
+
+    for (size_t i = 0; i < obj.size(); ++i) {
+      obj_info_t data = obj[i];
       rectangle.fillRect(0, 0, 100, 80, TFT_WHITE);
       rectangle.drawRect(0, 0, 100, 80, TFT_NAVY);
-      rectangle.pushRotateZoom(&sprites[flip], a->dx, a->dy - y, a->r, a->_scale, a->_scale, TRANSPARENT);
+      rectangle.pushRotateZoom(&sprites[flip], data.dx, data.dy - y, data.r, data._scale, data._scale, TRANSPARENT);
     }
 
     if (y == 0) {
