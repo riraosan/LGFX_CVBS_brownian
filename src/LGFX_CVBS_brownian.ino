@@ -49,6 +49,7 @@ struct obj_info_t {
   int_fast16_t height;
   int_fast16_t transX;
   int_fast16_t transY;
+  uint32_t     color;
   float        z;
   float        r;
   float        dr;
@@ -102,14 +103,6 @@ struct obj_info_t {
   }
 };
 
-bool operator<(const obj_info_t &left, const obj_info_t &right) {
-  return left.z < right.z;
-}
-
-bool operator>(const obj_info_t &left, const obj_info_t &right) {
-  return left.z > right.z;
-}
-
 static constexpr size_t obj_count = 30;
 std::vector<obj_info_t> obj;
 
@@ -119,6 +112,8 @@ static int_fast16_t sprite_height;
 static int_fast16_t time_height;
 
 static M5Canvas timeSprite;
+
+static uint32_t colors[obj_count];
 
 const unsigned short *f65[] = {
     sfc_43x65_f65_0,
@@ -133,6 +128,14 @@ const unsigned short *f65[] = {
     sfc_43x65_f65_9,
     sfc_19x65_f65_colon,
     sfc_19x65_f65_dot};
+
+bool operator<(const obj_info_t &left, const obj_info_t &right) {
+  return left.z < right.z;
+}
+
+bool operator>(const obj_info_t &left, const obj_info_t &right) {
+  return left.z > right.z;
+}
 
 void drawTime(int flip, int h, int m, int s) {
   int hA = h / 10;
@@ -193,7 +196,7 @@ constexpr uint8_t progress[] = {'-', '\\', '|', '/'};
 
 // Connect to wifi
 void setupWiFi(void) {
-  WiFi.begin("your_ssid", "your_password");
+  WiFi.begin("", "");
 
   // Wait some time to connect to wifi
   for (int i = 0; i < 30 && WiFi.status() != WL_CONNECTED; i++) {
@@ -302,6 +305,7 @@ void setupSprite(void) {
     data.height = 80;
     data.r      = 0;
     data.z      = random(10, 100);
+    data.color  = display.color888(random(255), random(255), random(255));
 
     data.draw3D();
 
@@ -331,6 +335,37 @@ void setupSprite(void) {
   timeSprite.setColorDepth(display.getColorDepth());
   timeSprite.setSwapBytes(true);
   timeSprite.createSprite(43, 65);
+}
+
+uint32_t getColors2(int count) {
+  uint32_t p = 0;
+  if ((count % 8) & 1) p = 0x03;
+  if ((count % 8) & 2) p += 0x1C;
+  if ((count % 8) & 4) p += 0xE0;
+  return p;
+}
+
+uint32_t getColors(int count) {
+  int r = 0, g = 0, b = 0;
+  switch (count >> 4) {
+    case 0:
+      b = 255;
+      g = count * 0x11;
+      break;
+    case 1:
+      b = 255 - (count & 15) * 0x11;
+      g = 255;
+      break;
+    case 2:
+      g = 255;
+      r = (count & 15) * 0x11;
+      break;
+    case 3:
+      r = 255;
+      g = 255 - (count & 15) * 0x11;
+      break;
+  }
+  return display.color888(r, g, b);
 }
 
 void setup(void) {
@@ -368,8 +403,8 @@ void loop(void) {
 
     for (size_t i = 0; i < obj.size(); ++i) {
       obj_info_t data = obj[i];
-      rectangle.fillRect(0, 0, 100, 80, TFT_WHITE);
-      rectangle.drawRect(0, 0, 100, 80, TFT_NAVY);
+      rectangle.fillRect(0, 0, 100, 80, data.color);
+      // rectangle.drawRect(0, 0, 100, 80, TFT_WHITE);
       rectangle.pushRotateZoom(&sprites[flip], data.dx, data.dy - y, data.r, data._scale, data._scale, TRANSPARENT);
     }
 
