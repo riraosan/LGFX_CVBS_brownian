@@ -193,7 +193,7 @@ constexpr uint8_t progress[] = {'-', '\\', '|', '/'};
 
 // Connect to wifi
 void setupWiFi(void) {
-  WiFi.begin("", "");
+  WiFi.begin("Buffalo-C130", "nnkxnpshmhai6");
 
   // Wait some time to connect to wifi
   for (int i = 0; i < 30 && WiFi.status() != WL_CONNECTED; i++) {
@@ -360,7 +360,7 @@ void loop(void) {
     obj[i].draw3D();
   }
 
-  std::sort(obj.begin(), obj.end());
+  std::sort(obj.begin(), obj.end(), std::greater<obj_info_t>());
 
   for (int_fast16_t y = 0; y < lcd_height; y += sprite_height) {
     flip = flip ? 0 : 1;
