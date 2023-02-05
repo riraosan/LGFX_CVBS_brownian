@@ -193,7 +193,7 @@ constexpr uint8_t progress[] = {'-', '\\', '|', '/'};
 
 // Connect to wifi
 void setupWiFi(void) {
-  WiFi.begin("Buffalo-C130", "nnkxnpshmhai6");
+  WiFi.begin("your_ssid", "your_password");
 
   // Wait some time to connect to wifi
   for (int i = 0; i < 30 && WiFi.status() != WL_CONNECTED; i++) {
