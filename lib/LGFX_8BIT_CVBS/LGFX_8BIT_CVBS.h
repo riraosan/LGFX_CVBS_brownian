@@ -7,7 +7,7 @@ class LGFX_8BIT_CVBS : public lgfx::LGFX_Device {
 public:
   lgfx::Panel_CVBS _panel_instance;
 
-  LGFX_8BIT_CVBS(void) {
+  LGFX_8BIT_CVBS(int8_t pin_dac) {
     {                                       // 表示パネル制御の設定を行います。
       auto cfg = _panel_instance.config();  // 表示パネル設定用の構造体を取得します。
 
@@ -42,7 +42,7 @@ public:
       // cfg.signal_type = cfg.signal_type_t::PAL_N;
 
       // 出力先のGPIO番号を設定;
-      cfg.pin_dac = 26;  // DACを使用するため、 25 または 26 のみが選択できます;
+      cfg.pin_dac = pin_dac;  // DACを使用するため、 25 または 26 のみが選択できます;
 
       // PSRAMメモリ割当の設定;
       cfg.use_psram = 0;  // 0=PSRAM不使用 / 1=PSRAMとSRAMを半々使用 / 2=全部PSRAM使用;
