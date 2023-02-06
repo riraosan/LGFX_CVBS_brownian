@@ -33,7 +33,7 @@
 #define TRANSPARENT 0x0000
 
 // 表示
-static LGFX_8BIT_CVBS display(25);//Select G26 or G25
+static LGFX_8BIT_CVBS display(25);  // Select G26 or G25
 static Button2        button;
 
 static uint32_t lcd_width;
@@ -69,8 +69,10 @@ struct obj_info_t {
 
     z -= 0.1;
     if (z < 0) {
-      z = 100;
+      z     = 100;
       color = display.color888(random(255), random(255), random(255));
+      x     = random(-(lcd_width >> 1), lcd_width >> 1);
+      y     = random(-(lcd_height >> 1), lcd_height >> 1);
     }
     // log_d("x=%d, y=%d, scale=%.4f", x, y, _scale);
   }
