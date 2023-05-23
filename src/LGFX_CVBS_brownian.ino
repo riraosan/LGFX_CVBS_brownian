@@ -70,7 +70,7 @@ struct obj_info_t {
     z -= 0.1;
     if (z < 0) {
       z     = 100;
-      color = display.color888(random(255), random(255), random(255));
+      color = display.color888(random(100, 255), random(100, 255), random(100, 255));
       x     = random(-(lcd_width >> 1), lcd_width >> 1);
       y     = random(-(lcd_height >> 1), lcd_height >> 1);
     }
@@ -308,7 +308,7 @@ void setupSprite(void) {
     data.height = 80;
     data.r      = 0;
     data.z      = random(10, 100);
-    data.color  = display.color888(random(255), random(255), random(255));
+    data.color  = display.color888(random(100, 255), random(100, 255), random(100, 255));
 
     data.draw3D();
 
@@ -380,7 +380,7 @@ void setup(void) {
   checkSDUpdater(
       SD,            // filesystem (default=SD)
       MENU_BIN,      // path to binary (default=/menu.bin, empty string=rollback only)
-      10000,         // wait delay, (default=0, will be forced to 2000 upon ESP.restart() )
+      2000,         // wait delay, (default=0, will be forced to 2000 upon ESP.restart() )
       TFCARD_CS_PIN  // (usually default=4 but your mileage may vary)
   );
 
